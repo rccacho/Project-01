@@ -8,7 +8,7 @@ console.log("sanity check: JS connected!");
     var takeQuiz = $('#takeQuiz');
     takeQuiz.click(function(event){
       clearPage();
-      loadQuestion();
+      loadQuiz();
     });
 
   //Function to clear the page
@@ -18,9 +18,11 @@ console.log("sanity check: JS connected!");
 
   var formHTML;
   var currentUserId;
+  var creatureResult;
+  var mainUser;
 
   //Appends the result and form to the page
-  function loadCreaturePage(creatureType){
+  function loadCreaturePage(result){
 
     $.ajax({
       method: "GET",
@@ -31,8 +33,8 @@ console.log("sanity check: JS connected!");
 
     function captureCreature(creatures){
       creatures.forEach(function(creature){
-        if(creature.creatureType == creatureType){
-          creatureType = creature;
+        if(creature.creatureType == result){
+          creatureResult = creature;
            formHTML = `
             <form>
               <div class="row">
@@ -53,7 +55,7 @@ console.log("sanity check: JS connected!");
               <div class="row">
                 <div class="col-md-offset-3 col-md-3"><label>Favorite Food</label></div><div class="col-md-3"><input type="text" name="favoriteFood" id="form_favoriteFood" required></div>
               </div>
-              <input type="hidden" name="creature" value="${creatureType.creatureType}">
+              <input type="hidden" name="creature" value="${creatureResult.creatureType}">
               <div class="row">
                 <div class="col-md-offset-3 col-md-3"><input id="formSubmit" type="submit"></div>
               </div>
@@ -61,9 +63,9 @@ console.log("sanity check: JS connected!");
             `;
           $mainDiv.append(`
             <div class="creature">
-              <img src='${creatureType.imageUrl}'>
-              <h1>You are a ${creatureType.creatureType}!</h1>
-              <p>${creatureType.description}</p>
+              <img src='${creatureResult.imageUrl}'>
+              <h1>You are a ${creatureResult.creatureType}!</h1>
+              <p>${creatureResult.description}</p>
             </div>
             <div class="userData">
               ${formHTML}
@@ -98,13 +100,14 @@ console.log("sanity check: JS connected!");
 
 
   function loadMainProfile(newUser){
+    mainUser = newUser;
+    if (mainUser.gender == "male"){
+      mainUser.pronoun = "his"
+    } else {
+      mainUser.pronoun = "her"
+    };
     $('.userData').empty();
-  	$('.userData').append(`
-      <div class="madLib"
-        <p>Behold, ${newUser.name} the mighty ${newUser.creature.creatureType}!</p>
-        <p>${newUser.name} was a curious little fellow who one day went away from ${newUser.city}, left his/her ${newUser.favoriteFood} half eaten, grabbed his/her ${newUser.favoriteColor} cloak, and went on an adventure! Later on, ${newUser.name} regretted having left the half-eaten ${newUser.favoriteFood}.</p>
-      </div>
-      `);
+  	$('.userData').append(eval('`' +creatureResult.madlib + '`'));
 
   	loadProfiles();
   }
@@ -112,6 +115,10 @@ console.log("sanity check: JS connected!");
 
   //GETS ALL User profiles and renders to page
   function loadProfiles() {
+    //first clear all profiles and turn of event listeners so there won't be multiple
+    $(".allUsers").empty().off();
+
+    //then get info to load all profiles fresh
 	$.ajax({
       method: 'GET',
       url: '/api/users',
@@ -147,7 +154,7 @@ console.log("sanity check: JS connected!");
           success: populateForm,
           error: onError
         });
-        
+
         //Pre-populates the modal form with user's previous info
         function populateForm(user){
           $('#form_name').val(user.name);
@@ -194,6 +201,7 @@ console.log("sanity check: JS connected!");
       $('#userModal').modal('hide');
       $(`[data-user-id=${updatedUser._id}]`).remove();
       renderUser(updatedUser);
+      loadMainProfile(updatedUser);
     }
   }
 
@@ -214,24 +222,135 @@ function deleteUserError() {
 
 
   //Appends the question and answer choices to the page
-  function loadQuestion(){
-    $mainDiv.append(`
+  function loadQuiz(){
+    var i =0;
+    var HumanPts = 0, HobbitPts = 0, ElfPts = 0, DwarfPts = 0, WizardPts = 0, EntPts =0;
 
-      <h1>Which creature are you?</h1>
+    var questions=[
+      {
+        q: "Which creature are you?",
+        A: "Hooman",
+        B: "Hobbit",
+        C: "Elf",
+        D: "Dwarf",
+        E: "Wizard",
+        F: "Ent"
+    },
+    {
+      q: "No seriously which creature are you?",
+      A: "real Hooman",
+      B: "real Hobbit",
+      C: "real Elf",
+      D: "real Dwarf",
+      E: "real Wizard",
+      F: "real Ent"
+    },
+    {
+      q: "But really which creature are you?",
+      A: "definitely Hooman",
+      B: "definitely Hobbit",
+      C: "definitely Elf",
+      D: "definitely Dwarf",
+      E: "definitely Wizard",
+      F: "definitely Ent"
+    }];
+
+    function loadQuestion(){
+      //ask question
+      $mainDiv.html(`
+
+      <h1>${questions[i].q}</h1>
       <div class="row">
-        <div class="option col-md-6" data-creature-type="Human">Hooman</div>
-        <div class="option col-md-6" data-creature-type="Hobbit">Hobbit</div>
-        <div class="option col-md-6" data-creature-type="Elf">Elf</div>
-        <div class="option col-md-6" data-creature-type="Dwarf">Dwarf</div>
-        <div class="option col-md-6" data-creature-type="Wizard">Wizard</div>
-        <div class="option col-md-6" data-creature-type="Ent">Ent</div>
+        <div class="option col-md-6" data-answer="A">${questions[i].A}</div>
+        <div class="option col-md-6" data-answer="B">${questions[i].B}</div>
+        <div class="option col-md-6" data-answer="C">${questions[i].C}</div>
+        <div class="option col-md-6" data-answer="D">${questions[i].D}</div>
+        <div class="option col-md-6" data-answer="E">${questions[i].E}</div>
+        <div class="option col-md-6" data-answer="F">${questions[i].F}</div>
       </div>
 
     `);
-    $('.option').click(function(){
-      clearPage();
-      var creatureType = $(this).data('creature-type');
-      loadCreaturePage(creatureType);
+    }
+
+    loadQuestion();
+
+    //listen for choice
+    $mainDiv.on('click', '.option', function(){
+      //update scores
+      switch($(this).data('answer')){
+        case "A":
+          HumanPts++;
+          break;
+        case "B":
+          HobbitPts++;
+          break;
+        case "C":
+          ElfPts++;
+          break;
+        case "D":
+          DwarfPts++;
+          break;
+        case "E":
+          WizardPts++;
+          break;
+        case "F":
+          EntPts++;
+      };
+      
+      //load next question
+      if(questions[i+1]){
+        i++;
+        loadQuestion();
+      }
+
+      //or decide creatureType and load creature page
+      else{
+
+        //decide creature result
+        var score = [HumanPts,HobbitPts,ElfPts,DwarfPts,WizardPts,EntPts];
+        var maxScore = Math.max(...score);
+        var maxIndices = [];
+        var creatureIndex;
+        var creatureType;
+
+        //find creature index
+        var idx = score.indexOf(maxScore);
+        while (idx != -1){
+          maxIndices.push(idx);
+          idx = score.indexOf(maxScore, idx+1);
+        };
+        if (maxIndices.length>1){
+          var randomMaxIndex = Math.floor(Math.random() * maxIndices.length);
+          creatureIndex = maxIndices[randomMaxIndex];
+        } else {
+          creatureIndex = maxIndices[0];
+        }
+
+        //translate creature index to creature type
+        switch (creatureIndex){
+          case 0:
+            creatureType = "Human";
+            break;
+          case 1:
+            creatureType = "Hobbit";
+            break;
+          case 2:
+            creatureType = "Elf";
+            break;
+          case 3:
+            creatureType = "Dwarf";
+            break;
+          case 4:
+            creatureType = "Wizard";
+            break;
+          case 5:
+            creatureType = "Ent";
+        };
+
+        // clear page, load result
+        clearPage();
+        loadCreaturePage(creatureType);
+      }
     });
   }
 

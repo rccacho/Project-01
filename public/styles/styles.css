@@ -31,3 +31,10 @@ input{
   display:inline-block;
   text-align:center;
 }
+
+.madlib {
+  font-style: italic;
+}
+.option{
+  margin: 25px auto;
+}
