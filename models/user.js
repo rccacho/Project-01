@@ -8,6 +8,7 @@ var UserSchema = new Schema({
 	gender: String,
 	favoriteColor: String,
 	favoriteFood: String,
+	weaponName: String,
 	creature: {
     	type: Schema.Types.ObjectId,
     	ref: 'Creature'

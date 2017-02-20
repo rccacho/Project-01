@@ -37,6 +37,7 @@ function add(req,res){
     gender: req.body.gender,
     favoriteColor: req.body.favoriteColor,
     favoriteFood: req.body.favoriteFood,
+    weaponName: req.body.weaponName
   });
   db.Creature.findOne({creatureType: req.body.creature}, function(err,creature){
     if (err) {
@@ -65,6 +66,7 @@ function update(req, res) {
     gender: req.body.gender,
     favoriteColor: req.body.favoriteColor,
     favoriteFood: req.body.favoriteFood,
+    weaponName: req.body.weaponName
   };
   db.Creature.findOne({creatureType: req.body.creature}, function(err,creature){
     if (err) {
